@@ -1,0 +1,3 @@
+<?xml version="1.0" encoding="utf-8"?>
+<feed xmlns="http://www.w3.org/2005/Atom"><title>hello world</title><link href="/" rel="alternate"></link><link href="/feeds/misc.atom.xml" rel="self"></link><id>/</id><updated>2013-10-03T00:00:00+02:00</updated><entry><title>hellok now has a blog of its own!</title><link href="/hellok-now-has-a-blog-of-its-own.html" rel="alternate"></link><updated>2013-10-03T00:00:00+02:00</updated><author><name>hellok</name></author><id>tag:,2013-10-03:hellok-now-has-a-blog-of-its-own.html</id><summary type="html">&lt;p&gt;helloworld&lt;/p&gt;
+</summary></entry></feed>
