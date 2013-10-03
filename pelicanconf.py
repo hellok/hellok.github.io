@@ -4,7 +4,7 @@ from __future__ import unicode_literals
 
 AUTHOR = u'hellok'
 SITENAME = u'hello world'
-SITEURL = 'http://hellok.github.io'
+SITEURL = ''
 
 TIMEZONE = 'Europe/Paris'
 
@@ -24,7 +24,7 @@ LINKS =  (('Pelican', 'http://getpelican.com/'),
           ('You can modify those links in your config file', '#'),)
 
 # Social widget
-SOCIAL = (('You can add links in your config file', '#'),
+SOCIAL = (('github', 'http://github.com/hellok'),
           ('Another social link', '#'),)
 
 DEFAULT_PAGINATION = 10
