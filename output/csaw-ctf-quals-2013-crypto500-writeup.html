@@ -1,0 +1,449 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+	<meta charset="utf-8">
+	<title>helloworld</title>
+	<meta name="description" content="">
+	<meta name="author" content="hellok">
+
+	<!-- HTML5 shim, for IE6-8 support of HTML elements -->
+	<!--[if lt IE 9]>
+		<script src="/theme/html5.js"></script>
+	<![endif]-->
+
+	<!-- Styles -->
+	<link href="/theme/bootstrap.min.css" rel="stylesheet">
+	<link href="/theme/local.css" rel="stylesheet">
+	<link href="/theme/pygments.css" rel="stylesheet">
+
+    <!-- Feeds -->
+    <link href="/feeds/all.atom.xml" type="application/atom+xml" rel="alternate" title="helloworld Atom Feed" />
+
+</head>
+<body>
+<a href="http://github.com/hellok/hellok.github.io"><img style="position: absolute; top: 39px; right: 0; border: 0;" src="http://s3.amazonaws.com/github/ribbons/forkme_right_white_ffffff.png" alt="Fork me on GitHub" /></a>
+	<div class="topbar">
+	  <div class="topbar-inner">
+		<div class="container-fluid">
+		  <a class="brand" href="/">helloworld</a>
+			<ul class="nav">
+					<li class="active"><a href="/category/ctf.html">ctf</a></li>
+			</ul>
+			<p class="pull-right"><a href="/archives.html">[archives]</a> <a href="/tags.html">[tags]</a></p>
+		</div>
+	  </div>
+	</div>
+
+	<div class="container-fluid">
+	  <div class="sidebar">
+		<div class="well">
+			<h3>Blogroll</h3>
+			<ul>
+				<li><a href="http://getpelican.com/">Pelican</a></li>
+				<li><a href="http://python.org/">Python.org</a></li>
+				<li><a href="http://maps.google.com">maps</a></li>
+			</ul>
+			<div class="social">
+			<h3>Social</h3>
+			<ul>
+				<li><a href="http://github.com/hellok">github</a></li>
+				<li><a href="http://repro.sinaapp.com">sinaapp</a></li>
+			</ul>
+			</div>
+		</div>
+	  </div>
+	  <div class="content">
+	<div class='article'>
+		<div class="page-header"><h1>CSAW CTF Quals 2013 Crypto500 Writeup</h1></div>
+		<div class="well small">Permalink: <a class="more" href="/csaw-ctf-quals-2013-crypto500-writeup">2013-10-04 00:00:00</a>
+by <a class="url fn" href="/author/hellok">hellok </a>
+ in <a href="/category/ctf.html">ctf</a>
+</div>
+		<div><h2>Problem Description</h2>
+<p>We’ve found the source to the Arstotzka spies rendevous server, we must find out their new vault key. Source code is <a href="http://shell-storm.org/repo/CTF/CSAW-2013/Crypto/slurp-500/slurp.py">here</a>.</p>
+<div class="highlight"><pre><span class="s-Atom">from</span> <span class="s-Atom">hashlib</span> <span class="s-Atom">import</span> <span class="s-Atom">sha512</span><span class="p">,</span><span class="s-Atom">sha1</span>
+<span class="s-Atom">import</span> <span class="s-Atom">random</span><span class="p">,</span><span class="s-Atom">sys</span><span class="p">,</span><span class="s-Atom">struct</span>
+<span class="s-Atom">import</span> <span class="nv">SocketServer</span>
+<span class="s-Atom">import</span> <span class="s-Atom">base64</span> <span class="s-Atom">as</span> <span class="s-Atom">b64</span>
+<span class="s-Atom">import</span> <span class="s-Atom">os</span>
+<span class="s-Atom">import</span> <span class="s-Atom">hmac</span>
+<span class="s-Atom">from</span> <span class="s-Atom">time</span> <span class="s-Atom">import</span> <span class="s-Atom">time</span>
+
+
+
+<span class="s-Atom">class</span> <span class="nv">HandleCheckin</span><span class="p">(</span><span class="nv">SocketServer</span><span class="p">.</span><span class="nv">BaseRequestHandler</span><span class="p">)</span><span class="s-Atom">:</span>
+    <span class="nv">N</span> <span class="o">=</span> <span class="m">59244860562241836037412967740090202129129493209028128777608075105340045576269119581606482976574497977007826166502644772626633024570441729436559376092540137133423133727302575949573761665758712151467911366235364142212961105408972344133228752133405884706571372774484384452551216417305613197930780130560424424943100169162129296770713102943256911159434397670875927197768487154862841806112741324720583453986631649607781487954360670817072076325212351448760497872482740542034951413536329940050886314722210271560696533722492893515961159297492975432439922689444585637489674895803176632819896331235057103813705143408943511591629</span>
+    <span class="s-Atom">accepted=</span><span class="p">{}</span>
+    <span class="s-Atom">def</span> <span class="nf">hashToInt</span><span class="p">(</span><span class="s-Atom">self</span><span class="p">,</span><span class="o">*</span><span class="s-Atom">params</span><span class="p">)</span><span class="s-Atom">:</span>
+        <span class="s-Atom">sha</span><span class="o">=</span><span class="nf">sha512</span><span class="p">()</span>
+        <span class="s-Atom">for</span> <span class="s-Atom">el</span> <span class="s-Atom">in</span> <span class="nn">params</span><span class="p">:</span>
+            <span class="s-Atom">sha</span><span class="p">.</span><span class="nf">update</span><span class="p">(</span><span class="s2">&quot;%r&quot;</span><span class="c1">%el)</span>
+        <span class="s-Atom">return</span> <span class="nf">int</span><span class="p">(</span><span class="s-Atom">sha</span><span class="p">.</span><span class="nf">hexdigest</span><span class="p">(),</span> <span class="m">16</span><span class="p">)</span>
+    <span class="s-Atom">def</span> <span class="nf">cryptrand</span><span class="p">(</span><span class="s-Atom">self</span><span class="p">,</span><span class="s-Atom">n</span><span class="o">=</span><span class="m">2048</span><span class="p">)</span><span class="s-Atom">:</span>  
+        <span class="s-Atom">p1</span><span class="o">=</span><span class="s-Atom">self</span><span class="p">.</span><span class="nf">hashToInt</span><span class="p">(</span><span class="s-Atom">os</span><span class="p">.</span><span class="nf">urandom</span><span class="p">(</span><span class="m">40</span><span class="p">))</span><span class="s-Atom">&lt;&lt;</span><span class="m">1600</span>
+        <span class="s-Atom">p1+=self</span><span class="p">.</span><span class="nf">hashToInt</span><span class="p">(</span><span class="s-Atom">p1</span><span class="p">)</span><span class="s-Atom">&lt;&lt;</span><span class="m">1000</span>
+        <span class="s-Atom">p1+=self</span><span class="p">.</span><span class="nf">hashToInt</span><span class="p">(</span><span class="s-Atom">p1</span><span class="p">)</span><span class="s-Atom">&lt;&lt;</span><span class="m">500</span>
+        <span class="s-Atom">p1+=self</span><span class="p">.</span><span class="nf">hashToInt</span><span class="p">(</span><span class="s-Atom">p1</span><span class="p">)</span>
+        <span class="s-Atom">bitmask=</span><span class="p">((</span><span class="m">2</span><span class="s-Atom">&lt;&lt;</span><span class="p">(</span><span class="s-Atom">n</span><span class="o">+</span><span class="m">1</span><span class="p">))</span><span class="o">-</span><span class="m">1</span><span class="p">)</span>
+        <span class="s-Atom">p1=</span><span class="p">(</span><span class="s-Atom">p1&amp;bitmask</span><span class="p">)</span>
+        <span class="nf">return</span>  <span class="p">(</span><span class="s-Atom">p1</span><span class="c1">% self.N)</span>
+    <span class="s-Atom">def</span> <span class="nf">sendInt</span><span class="p">(</span><span class="s-Atom">self</span><span class="p">,</span><span class="s-Atom">toSend</span><span class="p">)</span><span class="s-Atom">:</span>
+        <span class="s-Atom">s</span><span class="o">=</span><span class="nf">hex</span><span class="p">(</span><span class="s-Atom">toSend</span><span class="p">)</span>
+        <span class="s-Atom">s</span><span class="o">=</span><span class="s-Atom">s</span><span class="p">[</span><span class="m">2</span><span class="s-Atom">:</span><span class="p">]</span>
+        <span class="s-Atom">if</span> <span class="s-Atom">s</span><span class="p">[</span><span class="o">-</span><span class="m">1</span><span class="p">]</span><span class="s-Atom">==</span><span class="s2">&quot;L&quot;</span><span class="s-Atom">:</span>
+            <span class="s-Atom">s</span><span class="o">=</span><span class="s-Atom">s</span><span class="p">[:-</span><span class="m">1</span><span class="p">]</span>
+        <span class="s-Atom">self</span><span class="p">.</span><span class="s-Atom">request</span><span class="p">.</span><span class="nf">sendall</span><span class="p">(</span><span class="s-Atom">s+</span><span class="s2">&quot;\n&quot;</span><span class="p">)</span>
+    <span class="s-Atom">def</span> <span class="nf">readInt</span><span class="p">(</span><span class="s-Atom">self</span><span class="p">)</span><span class="s-Atom">:</span>
+        <span class="s-Atom">req</span><span class="o">=</span><span class="s-Atom">self</span><span class="p">.</span><span class="s-Atom">request</span>
+        <span class="s-Atom">leng</span> <span class="o">=</span> <span class="s-Atom">struct</span><span class="p">.</span><span class="nf">unpack</span><span class="p">(</span><span class="s2">&quot;H&quot;</span><span class="p">,</span> <span class="s-Atom">req</span><span class="p">.</span><span class="nf">recv</span><span class="p">(</span><span class="m">2</span><span class="p">))[</span><span class="m">0</span><span class="p">]</span>
+        <span class="s-Atom">if</span> <span class="s-Atom">leng</span><span class="o">&gt;</span><span class="m">520</span><span class="s-Atom">:</span>
+            <span class="s-Atom">req</span><span class="p">.</span><span class="nf">sendall</span><span class="p">(</span><span class="s2">&quot;Sorry that is too long a number\n&quot;</span><span class="p">)</span>
+            <span class="s-Atom">req</span><span class="p">.</span><span class="nf">close</span><span class="p">()</span>
+            <span class="s-Atom">return</span> <span class="nv">None</span>
+        <span class="s-Atom">toRead</span> <span class="o">=</span> <span class="s2">&quot;&quot;</span>
+        <span class="s-Atom">while</span> <span class="nf">len</span><span class="p">(</span><span class="s-Atom">toRead</span><span class="p">)</span> <span class="o">&lt;</span> <span class="nn">leng</span><span class="p">:</span>
+            <span class="s-Atom">toRead</span> <span class="s-Atom">+=</span> <span class="s-Atom">req</span><span class="p">.</span><span class="nf">recv</span><span class="p">(</span><span class="s-Atom">leng</span> <span class="o">-</span> <span class="nf">len</span><span class="p">(</span><span class="s-Atom">toRead</span><span class="p">))</span>
+        <span class="s-Atom">if</span> <span class="nf">len</span><span class="p">(</span><span class="s-Atom">toRead</span><span class="p">)</span> <span class="o">&gt;</span> <span class="nn">leng</span><span class="p">:</span>
+            <span class="s-Atom">req</span><span class="p">.</span><span class="nf">sendall</span><span class="p">(</span><span class="s2">&quot;Ain&#39;t happenin today dave\n&quot;</span><span class="p">)</span>
+            <span class="s-Atom">req</span><span class="p">.</span><span class="nf">close</span><span class="p">()</span>
+            <span class="s-Atom">return</span> <span class="nv">None</span>
+        <span class="s-Atom">return</span> <span class="nf">int</span><span class="p">(</span><span class="s-Atom">toRead</span><span class="p">,</span><span class="m">16</span><span class="p">)</span>
+
+    <span class="s-Atom">def</span> <span class="nf">checkBlacklist</span><span class="p">(</span><span class="s-Atom">self</span><span class="p">)</span><span class="s-Atom">:</span>
+        <span class="s-Atom">foreign</span><span class="o">=</span><span class="s-Atom">self</span><span class="p">.</span><span class="s-Atom">request</span><span class="p">.</span><span class="nf">getpeername</span><span class="p">()[</span><span class="m">0</span><span class="p">]</span>
+        <span class="s-Atom">if</span> <span class="s-Atom">foreign</span> <span class="s-Atom">in</span> <span class="s-Atom">self</span><span class="p">.</span><span class="nn">accepted</span><span class="p">:</span>
+            <span class="nf">while</span><span class="p">(</span><span class="nf">len</span><span class="p">(</span><span class="s-Atom">self</span><span class="p">.</span><span class="s-Atom">accepted</span><span class="p">[</span><span class="s-Atom">foreign</span><span class="p">])</span> <span class="o">&gt;</span><span class="m">0</span> <span class="s-Atom">and</span>
+                <span class="s-Atom">self</span><span class="p">.</span><span class="s-Atom">accepted</span><span class="p">[</span><span class="s-Atom">foreign</span><span class="p">][</span><span class="m">0</span><span class="p">]</span><span class="o">&lt;</span><span class="nf">time</span><span class="p">()</span><span class="o">-</span><span class="m">600</span><span class="p">)</span><span class="s-Atom">:</span>
+                <span class="s-Atom">del</span> <span class="s-Atom">self</span><span class="p">.</span><span class="s-Atom">accepted</span><span class="p">[</span><span class="s-Atom">foreign</span><span class="p">][</span><span class="m">0</span><span class="p">]</span>
+            <span class="s-Atom">if</span> <span class="nf">len</span><span class="p">(</span><span class="s-Atom">self</span><span class="p">.</span><span class="s-Atom">accepted</span><span class="p">[</span><span class="s-Atom">foreign</span><span class="p">])</span><span class="o">&gt;</span><span class="m">5</span><span class="s-Atom">:</span>
+                <span class="s-Atom">self</span><span class="p">.</span><span class="s-Atom">request</span><span class="p">.</span><span class="nf">send</span><span class="p">(</span><span class="s2">&quot;Too many requests too quick sorry\n&quot;</span><span class="p">)</span>
+                <span class="s-Atom">self</span><span class="p">.</span><span class="s-Atom">request</span><span class="p">.</span><span class="nf">close</span><span class="p">()</span>
+                <span class="s-Atom">return</span> <span class="nv">False</span>
+        <span class="nn">else</span><span class="p">:</span>
+            <span class="s-Atom">self</span><span class="p">.</span><span class="s-Atom">accepted</span><span class="p">[</span><span class="s-Atom">foreign</span><span class="p">]</span><span class="o">=</span><span class="p">[]</span>
+        <span class="s-Atom">return</span> <span class="nv">True</span>
+
+    <span class="s-Atom">def</span> <span class="nf">doChallenge</span><span class="p">(</span><span class="s-Atom">self</span><span class="p">)</span><span class="s-Atom">:</span>
+        <span class="s-Atom">req</span><span class="o">=</span><span class="s-Atom">self</span><span class="p">.</span><span class="s-Atom">request</span>
+
+        <span class="s-Atom">proof</span> <span class="o">=</span> <span class="s-Atom">b64</span><span class="p">.</span><span class="nf">b64encode</span><span class="p">(</span><span class="s-Atom">os</span><span class="p">.</span><span class="nf">urandom</span><span class="p">(</span><span class="m">12</span><span class="p">))</span>
+        <span class="s-Atom">req</span><span class="p">.</span><span class="nf">sendall</span><span class="p">(</span><span class="s2">&quot;You must first solve a puzzle, a sha1 sum ending in 24 bit&#39;s set to 1, it must be of length %s bytes, starting with %s&quot;</span> <span class="c1">% (len(proof)+5, proof))</span>
+        <span class="s-Atom">test</span> <span class="o">=</span> <span class="s-Atom">req</span><span class="p">.</span><span class="nf">recv</span><span class="p">(</span><span class="m">21</span><span class="p">)</span>
+
+        <span class="s-Atom">ha</span> <span class="o">=</span> <span class="nf">sha1</span><span class="p">()</span>
+        <span class="s-Atom">ha</span><span class="p">.</span><span class="nf">update</span><span class="p">(</span><span class="s-Atom">test</span><span class="p">)</span>
+
+        <span class="nf">if</span><span class="p">(</span><span class="o">not</span> <span class="s-Atom">self</span><span class="p">.</span><span class="nf">checkBlacklist</span><span class="p">())</span><span class="s-Atom">:</span>
+            <span class="s-Atom">return</span> <span class="nv">False</span>
+        <span class="nf">if</span> <span class="p">(</span><span class="s-Atom">test</span><span class="p">[</span><span class="m">0</span><span class="s-Atom">:</span><span class="m">16</span><span class="p">]</span> <span class="p">!</span><span class="o">=</span> <span class="s-Atom">proof</span> <span class="s-Atom">or</span> 
+            <span class="s-Atom">ha</span><span class="p">.</span><span class="nf">digest</span><span class="p">()[</span><span class="o">-</span><span class="m">3</span><span class="s-Atom">:</span><span class="p">]</span> <span class="p">!</span><span class="o">=</span> <span class="s2">&quot;\xff\xff\xff&quot;</span><span class="p">)</span><span class="s-Atom">:</span>
+            <span class="s-Atom">req</span><span class="p">.</span><span class="nf">sendall</span><span class="p">(</span><span class="s2">&quot;NOPE&quot;</span><span class="p">)</span>
+            <span class="s-Atom">req</span><span class="p">.</span><span class="nf">close</span><span class="p">()</span>
+            <span class="s-Atom">return</span> <span class="nv">False</span>
+
+        <span class="s-Atom">self</span><span class="p">.</span><span class="s-Atom">accepted</span><span class="p">[</span><span class="s-Atom">self</span><span class="p">.</span><span class="s-Atom">request</span><span class="p">.</span><span class="nf">getpeername</span><span class="p">()[</span><span class="m">0</span><span class="p">]].</span><span class="nf">append</span><span class="p">(</span><span class="nf">time</span><span class="p">())</span>
+
+        <span class="s-Atom">return</span> <span class="nv">True</span>
+
+    <span class="s-Atom">def</span> <span class="nf">getClientParams</span><span class="p">(</span><span class="s-Atom">self</span><span class="p">)</span><span class="s-Atom">:</span>
+        <span class="nv">N</span><span class="o">=</span><span class="s-Atom">self</span><span class="p">.</span><span class="nv">N</span>
+        <span class="s-Atom">req</span><span class="o">=</span><span class="s-Atom">self</span><span class="p">.</span><span class="s-Atom">request</span>
+        <span class="s-Atom">index</span><span class="o">=</span><span class="s-Atom">self</span><span class="p">.</span><span class="nf">readInt</span><span class="p">()</span>
+        <span class="s-Atom">if</span> <span class="s-Atom">index</span> <span class="o">is</span> <span class="nv">None</span><span class="s-Atom">:</span>
+            <span class="s-Atom">return</span>
+        <span class="s-Atom">if</span> <span class="s-Atom">index</span><span class="o">&lt;</span><span class="m">2</span> <span class="s-Atom">or</span> <span class="s-Atom">index</span><span class="o">&gt;</span><span class="nv">N</span><span class="o">/</span><span class="m">2</span><span class="s-Atom">:#we</span> <span class="s-Atom">don&#39;t have nearly that many users, we wish we did but lets be honest ,brute force attempt</span>
+<span class="s-Atom">            req.sendall(&quot;A Wrong move against the motherland\n&quot;)</span>
+<span class="s-Atom">            req.close()</span>
+<span class="s-Atom">            return None</span>
+<span class="s-Atom">        req.sendall(&quot;Please provide your ephemeral key, can never be too careful\n&quot;)</span>
+<span class="s-Atom">        cEphemeral=self.readInt()</span>
+<span class="s-Atom">        if cEphemeral is None:</span>
+<span class="s-Atom">            return None</span>
+<span class="s-Atom">        if  cEphemeral%N==0:</span>
+<span class="s-Atom">            req.sendall(&quot;The Wrong move against the motherland\n&quot;)</span>
+<span class="s-Atom">            req.close()</span>
+<span class="s-Atom">            return None</span>
+<span class="s-Atom">        return cEphemeral,index</span>
+
+<span class="s-Atom">    def doSlurp(self,index,cEphemeral,salt):</span>
+<span class="s-Atom">        N=self.N</span>
+
+<span class="s-Atom">        password = &quot;&quot;</span>
+<span class="s-Atom">        hashToInt= self.hashToInt</span>
+<span class="s-Atom">        salt=hashToInt(index)</span>
+
+<span class="s-Atom">        storedKey = pow(index, hashToInt(salt, password), N)</span>
+<span class="s-Atom">        multiplierSlush = 3</span>
+
+<span class="s-Atom">        sEphemeralPriv = self.cryptrand()</span>
+<span class="s-Atom">        sEphemeral = (multiplierSlush * storedKey + </span>
+<span class="s-Atom">            pow(index, sEphemeralPriv, N)) % N</span>
+
+<span class="s-Atom">        self.sendInt(salt)</span>
+<span class="s-Atom">        self.sendInt(sEphemeral)</span>
+
+<span class="s-Atom">        slush = hashToInt(cEphemeral, sEphemeral)</span>
+<span class="s-Atom">        agreedKey = hashToInt(pow(cEphemeral * pow(storedKey, slush, N), sEphemeralPriv, N))</span>
+<span class="s-Atom">        return agreedKey,sEphemeral</span>
+
+<span class="s-Atom">    def handle(self):</span>
+<span class="s-Atom">        N=self.N</span>
+<span class="s-Atom">        hashToInt=self.hashToInt</span>
+<span class="s-Atom">        req = self.request</span>
+<span class="s-Atom">        if(not self.doChallenge()):</span>
+<span class="s-Atom">            return</span>
+
+<span class="s-Atom">        req.sendall(&quot;Welcome to Arstotzka&#39;s</span> <span class="s-Atom">check</span> <span class="s-Atom">in</span> <span class="s-Atom">server</span><span class="p">,</span> <span class="s-Atom">please</span> <span class="s-Atom">provide</span> <span class="s-Atom">the</span> <span class="s-Atom">agent</span> <span class="s-Atom">number\n</span><span class="s2">&quot;)</span>
+
+<span class="s2">        cEphemeral,index=self.getClientParams()</span>
+
+<span class="s2">        salt=self.hashToInt(index)</span>
+<span class="s2">        agreedKey,sEphemeral=self.doSlurp(index,cEphemeral,salt)</span>
+
+<span class="s2">        gennedKey=hashToInt(hashToInt(N) ^ hashToInt(index), hashToInt(index), salt, </span>
+<span class="s2">            cEphemeral, sEphemeral, agreedKey)</span>
+
+<span class="s2">        check=self.readInt()</span>
+
+<span class="s2">        if(check==gennedKey):</span>
+<span class="s2">            req.sendall(&quot;</span><span class="nv">Well</span> <span class="s-Atom">done</span> <span class="s-Atom">comrade</span><span class="p">,</span> <span class="s-Atom">the</span> <span class="s-Atom">key</span> <span class="s-Atom">to</span> <span class="s-Atom">the</span> <span class="s-Atom">vault</span> <span class="o">is</span> <span class="p">{}</span> <span class="s-Atom">\n</span><span class="s2">&quot;)</span>
+
+<span class="s2">        req.close()</span>
+
+<span class="s2">class ThreadedServer(SocketServer.ThreadingMixIn, SocketServer.TCPServer):</span>
+<span class="s2">    pass</span>
+
+<span class="s2">if __name__ == &quot;</span><span class="k">__</span><span class="s-Atom">main__</span><span class="s2">&quot;:</span>
+<span class="s2">    HOST, PORT = &quot;</span><span class="err">&quot;</span><span class="p">,</span> <span class="nf">int</span><span class="p">(</span><span class="s-Atom">sys</span><span class="p">.</span><span class="s-Atom">argv</span><span class="p">[</span><span class="m">1</span><span class="p">])</span>
+    <span class="s-Atom">server</span> <span class="o">=</span> <span class="nv">ThreadedServer</span><span class="p">((</span><span class="nv">HOST</span><span class="p">,</span> <span class="nv">PORT</span><span class="p">),</span> <span class="nv">HandleCheckin</span><span class="p">)</span>
+    <span class="s-Atom">server</span><span class="p">.</span><span class="s-Atom">allow_reuse_address</span> <span class="o">=</span> <span class="nv">True</span>
+    <span class="s-Atom">server</span><span class="p">.</span><span class="nf">serve_forever</span><span class="p">()</span>
+</pre></div>
+
+
+<p>So we have to crack sha512 puzzle and calc correct hash. At first i was trying to calculate sEphemeralPriv out, but it seems impossible. after some try, I realized that you can just use the trick "n^m mod N === something mod N".</p>
+<h2>Code</h2>
+<table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre>  1
+  2
+  3
+  4
+  5
+  6
+  7
+  8
+  9
+ 10
+ 11
+ 12
+ 13
+ 14
+ 15
+ 16
+ 17
+ 18
+ 19
+ 20
+ 21
+ 22
+ 23
+ 24
+ 25
+ 26
+ 27
+ 28
+ 29
+ 30
+ 31
+ 32
+ 33
+ 34
+ 35
+ 36
+ 37
+ 38
+ 39
+ 40
+ 41
+ 42
+ 43
+ 44
+ 45
+ 46
+ 47
+ 48
+ 49
+ 50
+ 51
+ 52
+ 53
+ 54
+ 55
+ 56
+ 57
+ 58
+ 59
+ 60
+ 61
+ 62
+ 63
+ 64
+ 65
+ 66
+ 67
+ 68
+ 69
+ 70
+ 71
+ 72
+ 73
+ 74
+ 75
+ 76
+ 77
+ 78
+ 79
+ 80
+ 81
+ 82
+ 83
+ 84
+ 85
+ 86
+ 87
+ 88
+ 89
+ 90
+ 91
+ 92
+ 93
+ 94
+ 95
+ 96
+ 97
+ 98
+ 99
+100
+101
+102
+103
+104
+105</pre></div></td><td class="code"><div class="highlight"><pre><span class="c">#!/usr/bin/python</span>
+<span class="kn">import</span> <span class="nn">os</span>
+<span class="kn">import</span> <span class="nn">sys</span>
+<span class="kn">import</span> <span class="nn">time</span>
+<span class="kn">import</span> <span class="nn">struct</span>
+<span class="kn">import</span> <span class="nn">socket</span>
+<span class="kn">import</span> <span class="nn">telnetlib</span>
+<span class="kn">import</span> <span class="nn">random</span><span class="o">,</span><span class="nn">hashlib</span><span class="o">,</span><span class="nn">base64</span>
+<span class="kn">from</span> <span class="nn">hashlib</span> <span class="kn">import</span> <span class="n">sha512</span><span class="p">,</span><span class="n">sha1</span>
+
+<span class="k">def</span> <span class="nf">hashToInt</span><span class="p">(</span><span class="o">*</span><span class="n">params</span><span class="p">):</span>
+    <span class="n">sha</span><span class="o">=</span><span class="n">sha512</span><span class="p">()</span>
+    <span class="k">for</span> <span class="n">el</span> <span class="ow">in</span> <span class="n">params</span><span class="p">:</span>
+        <span class="n">sha</span><span class="o">.</span><span class="n">update</span><span class="p">(</span><span class="s">&quot;</span><span class="si">%r</span><span class="s">&quot;</span><span class="o">%</span><span class="n">el</span><span class="p">)</span>
+    <span class="k">return</span> <span class="nb">int</span><span class="p">(</span><span class="n">sha</span><span class="o">.</span><span class="n">hexdigest</span><span class="p">(),</span> <span class="mi">16</span><span class="p">)</span>
+
+
+<span class="k">def</span> <span class="nf">gs</span><span class="p">(</span><span class="n">num</span><span class="p">):</span>
+    <span class="k">return</span> <span class="n">hashlib</span><span class="o">.</span><span class="n">sha1</span><span class="p">(</span><span class="n">num</span><span class="p">)</span><span class="o">.</span><span class="n">digest</span><span class="p">()</span>
+
+<span class="k">def</span> <span class="nf">crack</span><span class="p">(</span><span class="n">sha_p</span><span class="p">):</span>
+    <span class="k">print</span> <span class="s">&quot;crack:&quot;</span><span class="p">,</span><span class="n">sha_p</span>
+    <span class="n">ss</span><span class="o">=</span><span class="s">&quot;&quot;</span>
+    <span class="n">ret</span><span class="o">=</span><span class="mi">0</span>
+    <span class="k">for</span> <span class="n">keylen</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">10</span><span class="p">,</span><span class="mi">40</span><span class="p">):</span>
+        <span class="k">for</span> <span class="n">add_1</span> <span class="ow">in</span> <span class="nb">range</span> <span class="p">(</span><span class="mi">0</span><span class="p">,</span><span class="mi">140</span><span class="p">):</span>
+            <span class="k">for</span> <span class="n">add_2</span> <span class="ow">in</span> <span class="nb">range</span> <span class="p">(</span><span class="mi">10</span><span class="p">,</span><span class="mi">140</span><span class="p">):</span>
+                <span class="k">for</span> <span class="n">add_3</span> <span class="ow">in</span> <span class="nb">range</span> <span class="p">(</span><span class="mi">0</span><span class="p">,</span><span class="mi">155</span><span class="p">):</span>
+                    <span class="k">for</span> <span class="n">add_4</span> <span class="ow">in</span> <span class="nb">range</span> <span class="p">(</span><span class="mi">0</span><span class="p">,</span><span class="mi">155</span><span class="p">):</span>
+                        <span class="k">for</span> <span class="n">add_5</span> <span class="ow">in</span> <span class="nb">range</span> <span class="p">(</span><span class="mi">0</span><span class="p">,</span><span class="mi">155</span><span class="p">):</span>
+                            <span class="n">new_msg</span><span class="o">=</span><span class="n">sha_p</span><span class="o">+</span><span class="nb">chr</span><span class="p">(</span><span class="n">add_1</span><span class="p">)</span><span class="o">+</span><span class="nb">chr</span><span class="p">(</span><span class="n">add_2</span><span class="p">)</span><span class="o">+</span><span class="nb">chr</span><span class="p">(</span><span class="n">add_3</span><span class="p">)</span><span class="o">+</span><span class="nb">chr</span><span class="p">(</span><span class="n">add_4</span><span class="p">)</span><span class="o">+</span><span class="nb">chr</span><span class="p">(</span><span class="n">add_5</span><span class="p">)</span>
+                        <span class="k">if</span> <span class="n">gs</span><span class="p">(</span><span class="n">new_msg</span><span class="p">)[</span><span class="o">-</span><span class="mi">3</span><span class="p">:]</span><span class="o">==</span><span class="s">&quot;</span><span class="se">\xff\xff\xff</span><span class="s">&quot;</span><span class="p">:</span>
+                            <span class="k">print</span> <span class="s">&quot;got one </span><span class="si">%s</span><span class="s">&quot;</span><span class="o">%</span><span class="nb">len</span><span class="p">(</span><span class="n">new_msg</span><span class="p">)</span>
+                            <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">new_msg</span><span class="p">)</span><span class="o">==</span><span class="mi">21</span><span class="p">:</span>
+                                <span class="n">ss</span><span class="o">=</span><span class="n">new_msg</span>
+                                <span class="k">print</span> <span class="s">&quot;WE CRACK THE PUZZLE </span><span class="si">%d</span><span class="se">\n</span><span class="s">&quot;</span><span class="o">%</span><span class="nb">len</span><span class="p">(</span><span class="n">ss</span><span class="p">)</span>
+                                <span class="n">ret</span><span class="o">=</span><span class="mi">1</span>
+                                <span class="k">return</span> <span class="p">(</span><span class="n">ret</span><span class="p">,</span><span class="n">ss</span><span class="p">)</span>
+
+<span class="k">return</span> <span class="p">(</span><span class="n">ret</span><span class="p">,</span><span class="n">ss</span><span class="p">)</span>
+
+<span class="c">#s = socket.create_connection((&#39;128.238.66.222&#39;,7788))</span>
+<span class="n">s</span> <span class="o">=</span> <span class="n">socket</span><span class="o">.</span><span class="n">create_connection</span><span class="p">((</span><span class="s">&#39;127.0.0.1&#39;</span><span class="p">,</span><span class="mi">7788</span><span class="p">))</span>
+<span class="n">se</span><span class="o">=</span><span class="s">&quot;&quot;</span>
+<span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span><span class="mi">100</span><span class="p">):</span>
+    <span class="n">ss</span><span class="o">=</span><span class="n">s</span><span class="o">.</span><span class="n">recv</span><span class="p">(</span><span class="mi">1000</span><span class="p">)</span>
+    <span class="k">print</span> <span class="n">ss</span>
+    <span class="n">sha_p</span><span class="o">=</span><span class="n">ss</span><span class="p">[</span><span class="nb">len</span><span class="p">(</span><span class="n">ss</span><span class="p">)</span><span class="o">-</span><span class="mi">16</span><span class="p">:]</span>
+    <span class="n">new_msg</span><span class="o">=</span><span class="n">crack</span><span class="p">(</span><span class="n">sha_p</span><span class="p">[</span><span class="o">-</span><span class="mi">16</span><span class="p">:])</span>
+    <span class="k">if</span> <span class="n">new_msg</span><span class="p">[</span><span class="mi">0</span><span class="p">]:</span>
+        <span class="n">se</span><span class="o">=</span><span class="n">new_msg</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span>
+        <span class="k">print</span> <span class="s">&quot;send:&quot;</span><span class="p">,</span><span class="n">se</span><span class="p">,</span><span class="n">hashlib</span><span class="o">.</span><span class="n">sha1</span><span class="p">(</span><span class="n">se</span><span class="p">)</span><span class="o">.</span><span class="n">digest</span><span class="p">()[</span><span class="o">-</span><span class="mi">3</span><span class="p">:]</span>
+        <span class="k">break</span>
+
+
+<span class="n">s</span><span class="o">.</span><span class="n">send</span><span class="p">(</span><span class="n">se</span><span class="p">)</span>
+<span class="c">#raw_input()</span>
+<span class="n">N</span> <span class="o">=</span> <span class="mi">59244860562241836037412967740090202129129493209028128777608075105340045576269119581606482976574497977007826166502644772626633024570441729436559376092540137133423133727302575949573761665758712151467911366235364142212961105408972344133228752133405884706571372774484384452551216417305613197930780130560424424943100169162129296770713102943256911159434397670875927197768487154862841806112741324720583453986631649607781487954360670817072076325212351448760497872482740542034951413536329940050886314722210271560696533722492893515961159297492975432439922689444585637489674895803176632819896331235057103813705143408943511591629</span>
+
+<span class="n">index</span><span class="o">=</span><span class="mi">28483644508750028902258833085453121291738558908844640378204850915473006274236033891815596646870094954832384471913373171061099388958373536383247454431214837805096635029244738399662911119306089493137122381562794483801525427601711736403424013966624957471463169984161438593701202381673774894874606950326837142168801614196218030413825361835813060325642766963973454456577907567314093695138863251603368180581162185039224604662844750924047132242103613509637088222461132023037724162558095265336717907895786691004801515830247270579025866384571194244368350362690250445425121639616294300827554006418861422621428030154329451920623</span><span class="c">#17095359415354811031956139176232822755293333580176796651092816713929142596363160518183074582333639666374490434453616522976528693318889544211598801485465809374370977363040240176466544504447562622451988654983833567639785357067606037932165650485806709538575591881306056180364137612491852807151445333929946180083335184143784040034635507293616742432550220001472750029503246943474764484598756871323795898352813684410952415776064654304191774216122857994311730048413954488815342894838841918071841785821830683677234982197021652871796420412165927837273704381564043458200253387672509280296033910910416083249362331740208987494679</span>
+
+<span class="n">cEphemeral</span><span class="o">=</span><span class="mi">1</span>
+<span class="n">send_num1</span><span class="o">=</span><span class="nb">str</span><span class="p">(</span><span class="nb">hex</span><span class="p">(</span><span class="n">index</span><span class="p">))[</span><span class="mi">2</span><span class="p">:][:</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span>
+<span class="n">send_num2</span><span class="o">=</span><span class="nb">str</span><span class="p">(</span><span class="nb">hex</span><span class="p">(</span><span class="n">cEphemeral</span><span class="p">))[</span><span class="mi">2</span><span class="p">:]</span>
+
+<span class="n">s</span><span class="o">.</span><span class="n">send</span><span class="p">(</span><span class="n">struct</span><span class="o">.</span><span class="n">pack</span><span class="p">(</span><span class="s">&quot;H&quot;</span><span class="p">,</span><span class="nb">len</span><span class="p">(</span><span class="n">send_num1</span><span class="p">)))</span>
+<span class="n">s</span><span class="o">.</span><span class="n">send</span><span class="p">(</span><span class="n">send_num1</span><span class="p">)</span><span class="c">#send numberc index--&gt;base number</span>
+
+<span class="k">print</span> <span class="s">&quot;1:&quot;</span><span class="p">,</span><span class="n">s</span><span class="o">.</span><span class="n">recv</span><span class="p">(</span><span class="mi">72</span><span class="p">)</span>
+<span class="k">print</span> <span class="s">&quot;2:&quot;</span><span class="p">,</span><span class="n">s</span><span class="o">.</span><span class="n">recv</span><span class="p">(</span><span class="mi">60</span><span class="p">)</span>
+
+<span class="n">s</span><span class="o">.</span><span class="n">send</span><span class="p">(</span><span class="n">struct</span><span class="o">.</span><span class="n">pack</span><span class="p">(</span><span class="s">&quot;H&quot;</span><span class="p">,</span><span class="nb">len</span><span class="p">(</span><span class="n">send_num2</span><span class="p">)))</span>
+<span class="n">s</span><span class="o">.</span><span class="n">send</span><span class="p">(</span><span class="n">send_num2</span><span class="p">)</span><span class="c">#send number cEphemeral</span>
+
+<span class="n">salt</span><span class="o">=</span><span class="nb">int</span><span class="p">(</span><span class="n">s</span><span class="o">.</span><span class="n">recv</span><span class="p">(</span><span class="mi">128</span><span class="p">),</span><span class="mi">16</span><span class="p">)</span>
+<span class="n">sEphemeral</span><span class="o">=</span><span class="nb">long</span><span class="p">(</span><span class="nb">int</span><span class="p">(</span><span class="n">s</span><span class="o">.</span><span class="n">recv</span><span class="p">(</span><span class="mi">514</span><span class="p">),</span><span class="mi">16</span><span class="p">))</span>
+
+<span class="c">#print &quot;3:salt:&quot;,salt</span>
+<span class="c">#print &quot;4:sEphemeral:&quot;,sEphemeral</span>
+<span class="n">tmp</span><span class="o">=</span><span class="n">hashToInt</span><span class="p">(</span><span class="n">salt</span><span class="p">,</span><span class="s">&quot;&quot;</span><span class="p">)</span>
+<span class="n">storedKey</span> <span class="o">=</span> <span class="nb">pow</span><span class="p">(</span><span class="n">index</span><span class="p">,</span><span class="n">tmp</span> <span class="p">,</span> <span class="n">N</span><span class="p">)</span>
+<span class="n">cq_sEphemeral</span><span class="o">=</span><span class="p">(</span><span class="mi">3</span> <span class="o">*</span> <span class="n">storedKey</span><span class="p">)</span> <span class="o">%</span> <span class="n">N</span>
+<span class="n">tmp1</span><span class="o">=</span><span class="p">(</span><span class="n">sEphemeral</span><span class="o">-</span><span class="n">cq_sEphemeral</span><span class="p">)</span><span class="o">%</span><span class="n">N</span>
+
+
+<span class="c">#agreedKey_withouthash = (cEphemeral * index^[sha512(salt, password) * slush])^sEphemeralPriv mod Nwhoami</span>
+<span class="c">#   cEphemeral=1  --&gt;</span>
+<span class="c">#agreedKey_withouthash = (index^[sha512(salt, password) * slush])^sEphemeralPriv mod N</span>
+<span class="c">#cause cEphemeral^^3 mod N =1</span>
+<span class="c">#so if sha512(salt, password) * slush * sEphemeralPriv mod 3 == 0</span>
+<span class="c">#agreedKey_withouthash = 1</span>
+<span class="c">#so we don&#39;t need to know sEphemeralPriv</span>
+
+<span class="n">slush</span> <span class="o">=</span> <span class="n">hashToInt</span><span class="p">(</span><span class="n">cEphemeral</span><span class="p">,</span> <span class="n">sEphemeral</span><span class="p">)</span>
+<span class="n">salt</span><span class="o">=</span><span class="n">hashToInt</span><span class="p">(</span><span class="n">index</span><span class="p">)</span>
+<span class="n">agreedKey</span><span class="o">=</span><span class="n">hashToInt</span><span class="p">(</span><span class="il">1L</span><span class="p">)</span>
+<span class="n">gennedKey</span><span class="o">=</span><span class="n">hashToInt</span><span class="p">(</span><span class="n">hashToInt</span><span class="p">(</span><span class="n">N</span><span class="p">)</span> <span class="o">^</span> <span class="n">hashToInt</span><span class="p">(</span><span class="n">index</span><span class="p">),</span> <span class="n">hashToInt</span><span class="p">(</span><span class="n">index</span><span class="p">),</span> <span class="n">salt</span><span class="p">,</span><span class="nb">int</span><span class="p">(</span><span class="n">cEphemeral</span><span class="p">),</span> <span class="nb">long</span><span class="p">(</span><span class="n">sEphemeral</span><span class="p">),</span> <span class="n">agreedKey</span><span class="p">)</span>
+<span class="n">send_num3</span><span class="o">=</span><span class="nb">str</span><span class="p">(</span><span class="nb">hex</span><span class="p">(</span><span class="n">gennedKey</span><span class="p">))[</span><span class="mi">2</span><span class="p">:][:</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span>
+<span class="n">s</span><span class="o">.</span><span class="n">send</span><span class="p">(</span><span class="n">struct</span><span class="o">.</span><span class="n">pack</span><span class="p">(</span><span class="s">&quot;H&quot;</span><span class="p">,</span><span class="nb">len</span><span class="p">(</span><span class="n">send_num3</span><span class="p">)))</span>
+<span class="n">s</span><span class="o">.</span><span class="n">send</span><span class="p">(</span><span class="n">send_num3</span><span class="p">)</span>
+
+
+<span class="k">print</span> <span class="n">s</span><span class="o">.</span><span class="n">recv</span><span class="p">(</span><span class="mi">1000</span><span class="p">)</span>
+<span class="k">print</span> <span class="n">s</span><span class="o">.</span><span class="n">recv</span><span class="p">(</span><span class="mi">1000</span><span class="p">)</span><span class="c">#--&gt;flag recv</span>
+<span class="k">print</span> <span class="n">s</span><span class="o">.</span><span class="n">recv</span><span class="p">(</span><span class="mi">1000</span><span class="p">)</span>
+</pre></div>
+</td></tr></table></div>
+		<div>
+			<h2>Comments</h2>
+		<div>
+	</div>	
+		<footer>
+		  <p>Powered by <a href="http://getpelican.com/">Pelican</a>. Theme based on <a href="http://twitter.github.com/bootstrap/">Twitter Bootstrap</a>.</p>
+		  <p>&copy; hellok</p>
+		</footer>
+	  </div>
+
+	</div>
+</body>
+</html>
