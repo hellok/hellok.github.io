@@ -27,7 +27,7 @@
 		  <a class="brand" href="/">helloworld</a>
 			<ul class="nav">
 					<li ><a href="/category/ctf.html">ctf</a></li>
-					<li ><a href="/category/note.html">note</a></li>
+					<li class="active"><a href="/category/note.html">note</a></li>
 			</ul>
 			<p class="pull-right"><a href="/archives.html">[archives]</a> <a href="/tags.html">[tags]</a></p>
 		</div>
@@ -53,27 +53,38 @@
 		</div>
 	  </div>
 	  <div class="content">
-<div class="page-header"><h1>helloworld <small>hellok</small></h1></div>
-<div class='article'>
-	<h2>Chromebook development env</h2>
-	<div class="well small">Permalink: <a class="more" href="/chromebook-development-env">2013-10-05 00:00:00</a>
-by <a class="url fn" href="/author/hellok">hellok </a>
+	<div class='article'>
+		<div class="page-header"><h1>evernote</h1></div>
+		<div class="well small">Permalink: <a class="more" href="/evernote">2013-10-05 00:00:00</a>
+by <a class="url fn" href="/author/someone">someone </a>
  in <a href="/category/note.html">note</a>
 </div>
-	<div class="summary"><a class="btn primary xsmall" href="/chromebook-development-env">more…</a>
-	</div>
-</div>	
-<div class='article'>
-	<h2>CSAW CTF Quals 2013 Crypto500 Writeup</h2>
-	<div class="well small">Permalink: <a class="more" href="/csaw-ctf-quals-2013-crypto500-writeup">2013-10-04 00:00:00</a>
-by <a class="url fn" href="/author/hellok">hellok </a>
- in <a href="/category/ctf.html">ctf</a>
-</div>
-	<div class="summary"><a class="btn primary xsmall" href="/csaw-ctf-quals-2013-crypto500-writeup">more…</a>
-	</div>
-</div>	
-
-
+		<div><h2>Turn off stack randomization</h2>
+<p>$ sudo sysctl -w kernel.randomize_va_space=0
+add above into "/etc/sysctrl.conf"</p>
+<h2>Turn off 0 address space</h2>
+<p>$ sudo sysctl -w vm.mmap_min_addr=0
+Testing NULL dereference attack</p>
+<h2>Turn off stack execution protection</h2>
+<p>ref. http://pwet.fr/man/linux/administration_systeme/execstack
+Tips</p>
+<h2>Core dump</h2>
+<p>Collect core dump in the single place
+echo /core/%t.%p.%n &gt;/proc/sys/kernel/core_pattern
+Before the Prologue
+0x08048408 :    lea    0x4(%esp),%ecx
+0x0804840c :    and    $0xfffffff0,%esp
+0x0804840f :    pushl  -0x4(%ecx)
+0xfffffff0 : -mpreferred-stack-boundary=X
+ref. http://kerneltrap.org/node/8236
+ref. http://t-a-w.blogspot.com/2007/03/modern-x86-assembly.html</p>
+<h2>Read Assembly</h2>
+<p>$ gcc -g -c test.c
+$ objdump -d -M intel -S test.o</p></div>
+		<div>
+			<h2>Comments</h2>
+		<div>
+	</div>	
 		<footer>
 		  <p>Powered by <a href="http://getpelican.com/">Pelican</a>. Theme based on <a href="http://twitter.github.com/bootstrap/">Twitter Bootstrap</a>.</p>
 		  <p>&copy; hellok</p>

@@ -14,7 +14,7 @@ DEFAULT_LANG = u'en'
 GITHUB_URL = 'http://github.com/hellok/hellok.github.io'
 
 
-ARTICLE_URL = ('{slug}')
+#ARTICLE_URL = ('{slug}')
 ARTICLE_SAVE_AS = ('{slug}.html')
 PAGE_URL = ('{slug}')
 PAGE_SAVE_AS = ('{slug}.html')
