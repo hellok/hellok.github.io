@@ -63,6 +63,17 @@ by <a class="url fn" href="/author/hellok">hellok </a>
 按住ESC和Refresh刷新键的同时，按开关键，即可进入恢复模式里，在这里继续按Ctrl+D（一闪而过，一定要迅速，速度！）然后它会让你确认是否重启并进入开发模式。如果要通过U盘启动，那么需要先输入“crossystem dev_boot_usb=1”，重启之后按Ctrl+U。
 
 如果想离开开发模式回到正常状态，可以输入“crossystem disable_dev_request=1; reboot”。
+<h2>
+
+Login with the admin user.
+Open a terminal by hiting CTRL+ALT+T
+Type the following
+shell (to drop into a standard bash shell)
+sudo stop powerm - to disable sleep when lid is closed. You could go with the longer version of: sudo initctl stop powerm but there is no reason to type more…
+sudo stop powerd - to disable all other power management features.
+Now logout from the menu – But do not restart!
+
+https://github.com/triune/caffeine</br>http://www.chromeexperiments.com/detail/eye-texture-raytracer/</h2>
 
 
 		<div><h2>网络</h2>
